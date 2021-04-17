@@ -71,7 +71,7 @@ struct RegInserter : public FunctionPass {
 
       size_t func_id = reinterpret_cast<size_t>(CI->getCalledFunction());
 
-      //если ранее не была использована такая функция, то выставялем код для работы с регистром
+      //если ранее не была использована такая функция, то вставляем код для работы с регистром
       if(!declarated_functions.count(func_id)){
         insert_addition_code(I,additionData);
 
@@ -193,13 +193,6 @@ struct RegInserter : public FunctionPass {
       PointerType::getInt8PtrTy(C, 0),
       MetadataAsValue::get(C, MDNode::get(C, {MDString::get(C, "x28")}))
     };
-    #if 0
-    auto *M = F.getParent();
-    auto &C = F.getContext();
-    auto int64_ty = Type::getInt64Ty(C);
-    auto void_ptr = PointerType::getInt8PtrTy(C, 0);
-    auto MD = MetadataAsValue::get(C, MDNode::get(C, {MDString::get(C, "x28")}));
-    #endif
     // Initialize x28 reg
     if (F.getName() == "main") {
       auto &EBB = F.getEntryBlock();
