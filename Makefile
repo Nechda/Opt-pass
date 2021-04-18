@@ -13,12 +13,13 @@ CFLAGS=-O2 -Werror -Wall -pedantic -fno-inline-functions -fPIC
 CFLAGS_CROSS=-I$(QEMU_LD_PREFIX)/include -target aarch64-linux-gnu -ffixed-x28
 LDLIBS=-lm
 
-BENCH=binary_trees
+BENCH=quadratic
 BENCH_REF=$(BENCH).ref
 BENCH_OPT=$(BENCH).opt
 OUTPUT_REF=out.ref
 OUTPUT_OPT=out.opt
 PASS_NAME=reg_inserter
+N_TESTS = 128
 
 $(BENCH_REF): $(BENCH).c
 	$(CC) $(CFLAGS) $(CFLAGS_CROSS) $(LDLIBS) -o $@ $<
@@ -44,9 +45,20 @@ run-opt: $(BENCH_OPT)
 compare: run-ref run-opt
 	diff $(OUTPUT_REF) $(OUTPUT_OPT)
 
+.PHONY: test
+test: tester.out
+	./tester.out $(N_TESTS)
+
+tester.out: t/ir_generator.cpp $(PASS_NAME).cpp
+	$(CXX) $(CFLAGS) `$(LLVM_CONFIG) --cxxflags` -g -fsanitize=address -lLLVM-11 \
+	t/ir_generator.cpp $(PASS_NAME).cpp -o tester.out
+
+
 .PHONY: clean
 clean:
 	rm -f $(BENCH_REF) $(OUTPUT_REF) \
 	      $(PASS_NAME).so \
-	      $(BENCH).orig.ll $(BENCH).ll $(BENCH).s $(BENCH_OPT) $(OUTPUT_OPT)
+	      $(BENCH).orig.ll $(BENCH).ll $(BENCH).s $(BENCH_OPT) $(OUTPUT_OPT) \
+		  tester.out
+
 
